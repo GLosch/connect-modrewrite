@@ -291,6 +291,26 @@ describe('Connect-modrewrite', function() {
       res.end.should.have.been.calledAfter(res.writeHead);
     });
 
+    it('should persist query strings', function() {
+      var middleware = modRewrite(['/a(\\?.*)?$ /b$1 [R]']);
+      var req = {
+        connection : { encrypted : false },
+        header : function() {},
+        headers : { host : 'test.com' },
+        url : '/a?querystring'
+      };
+      var res = {
+        setHeader : function() {},
+        writeHead : sinon.spy(),
+        end : sinon.spy()
+      };
+      var next = function() {};
+      middleware(req, res, next);
+      res.writeHead.should.have.been.calledWith(301, { Location: 'http://test.com/b?querystring'});
+      res.end.should.have.been.calledOnce;
+      res.end.should.have.been.calledAfter(res.writeHead);
+    });
+
     it('should be able to set a rewrite with hostname and protocol', function() {
       var middleware = modRewrite(['/(.*) http://localhost/$1 [R]']);
       var req = {
